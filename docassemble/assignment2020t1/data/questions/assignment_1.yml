@@ -1,0 +1,147 @@
+# ASSIGNMENT 1
+# You will be implementing the Legal Aid Bureau's interview to determine
+# whether an applicant is eligible for legal aid. 
+# The total score that can be awarded for this assignment is 20.
+# The reference interview is found here:
+# https://guided.page/interview?i=docassemble.playground3%3Alab.yml#page1
+# Resources are found here:
+# https://lab.mlaw.gov.sg/legal-services/taking-the-means-test/
+# https://sso.agc.gov.sg/SL/LAAA1995-RG1#Sc1-
+---
+# MODIFY THIS BLOCK
+# Please fill in the relevant information.
+metadata:
+  title: |
+    Your Title
+  short title: |
+    Your Short Title
+  description: |
+    Your Description
+  authors:
+    - name: Your Name Here
+      organization: COR-LAW-2215 Digital Intelligence for Lawyers
+  revision_date: 2020-09-16
+---
+# DO NOT MODIFY THIS BLOCK. SCORE: 5
+# Implement a check_nric function in a module file called validation.py.
+# It should check for (1) correct format and (2) that it is a valid NRIC.
+# Use a regular expression to test for the correct format.
+# Implement the checksum algorithm to determine whether the NRIC is valid.
+# The NRIC checksum algorithm can be found on:
+# http://www.ngiam.net/NRIC/ or Wikipedia
+# Test your function using data from: https://samliew.com/nric-generator
+modules:
+  .validation
+---
+# DO NOT MODIFY THIS BLOCK
+# This is your objects block.
+# Individual is used for the applicant.
+# DAList is used for household_incomes.
+objects:
+  applicant: Individual
+  household_members: DAList.using(object_type=Individual, there_is_another=False)
+---
+# MODIFY THIS BLOCK (BUT DO NOT MOVE IT). SCORE: 5
+# Use this block to control the interview logic.
+# Include this line somewhere in your code: 
+#   household_members.append(applicant)
+# This line of code adds the applicant to the household_members DAList.
+# This ensures that the applicant appears in the household_members.table.
+mandatory: True
+code: |
+
+---
+# DO NOT MODIFY THIS BLOCK OR MOVE IT
+mandatory: True
+code: |
+  if household_members.there_are_any:
+    review_household_members
+---
+# MODIFY THIS BLOCK (BUT DO NOT MOVE IT). SCORE: 5
+# Use this block to write code that calculates the average PCHI
+mandatory: True
+code: |
+
+---
+# DO NOT MODIFY THIS BLOCK
+table: household_members.table
+rows: household_members
+columns: 
+  - Name: row_item
+  - Birthdate: row_item.birthdate
+  - Income: row_item.income
+edit:
+  - name.first
+---
+# DO NOT MODIFY THIS BLOCK
+question: | 
+  Please add all other household members.
+subquestion: |
+  A household member is any person residing with you and related by:
+  
+  1. blood
+  2. marriage; or
+  3. adoption.
+  
+  Press continue when you have added all household members.
+  
+  ${household_members.table}
+
+  ${household_members.add_action() }
+  
+field: review_household_members
+---
+# DO NOT MODIFY THIS BLOCK
+question: |
+  Information about your ${ordinal(i)} household member:
+fields:
+  - First Name: household_members[i].name.first
+  - Last Name: household_members[i].name.last
+  - Birthdate: household_members[i].birthdate
+    datatype: date
+  - "This person's total income in past 12 months": household_members[i].income
+    datatype: currency
+    min: 0
+    default: 0
+---
+# IMPLEMENT ALL YOUR QUESTION BLOCKS.
+# Implement all the question blocks correctly. Score 3
+# Improving the usability / user experience. Score 2
+---
+# Property Information Collection
+question: |
+  Property Information 
+fields:
+  - "Do you own a property?": own_property
+    datatype: yesnoradio
+  - "Do you own multiple properties?": own_one_property
+    datatype: noyesradio
+    show if: own_property
+  - "As you only own one property, are you currently residing in that property?": residing_in_property
+    datatype: yesnoradio 
+    show if: own_one_property 
+  - "What is the annual value of your residential property?": annual_value_property
+    datatype: currency 
+    show if: residing_in_property
+---
+# Savings Information Collection
+question: |
+  Savings Matters
+fields: 
+  - 'Enter your birthdate:': applicant.birthdate 
+    datatype: date 
+  - 'How much total savings and investments do you have?': applicant_savings_investment
+    datatype: currency 
+    default: 0
+---
+# Savings Information Code to Determine Savings Limit 
+code: |
+  if applicant.age_in_years() > 60:
+    savings_limit = 40000
+  else:
+    savings_limit = 10000
+---
+# Event: Ineligbility Screen 
+question: |
+  Unfortunately, you do not qualify for legal aid with the Legal Aid Bureau. 
+event: ineligibility_screen
