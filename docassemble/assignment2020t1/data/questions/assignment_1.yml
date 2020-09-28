@@ -12,15 +12,15 @@
 # Please fill in the relevant information.
 metadata:
   title: |
-    Your Title
+    Legal Aid Bureau Means Test
   short title: |
-    Your Short Title
+    LAB Means Test 
   description: |
-    Your Description
+    As part of the LAB's Application Process for Legal Aid and Assistance, the applicants must go through a means test to assess the financial circumstances of the applicant and ensure that the applicant has limited means. This interview is intended to aid in conducting this means test online. 
   authors:
-    - name: Your Name Here
+    - name: Claire Tan 
       organization: COR-LAW-2215 Digital Intelligence for Lawyers
-  revision_date: 2020-09-16
+  revision_date: 2020-09-28
 ---
 # DO NOT MODIFY THIS BLOCK. SCORE: 5
 # Implement a check_nric function in a module file called validation.py.
@@ -49,7 +49,14 @@ objects:
 # This ensures that the applicant appears in the household_members.table.
 mandatory: True
 code: |
-
+  if own_property and (not own_one_property or not residing_in_property or annual_value_property > 13000): 
+    ineligibility_screen
+  else: 
+    if applicant_savings_investment > savings_limit: 
+      ineligibility_screen
+    else:
+      household_members.append(applicant) 
+      household_members.gathered = True
 ---
 # DO NOT MODIFY THIS BLOCK OR MOVE IT
 mandatory: True
@@ -61,7 +68,9 @@ code: |
 # Use this block to write code that calculates the average PCHI
 mandatory: True
 code: |
-
+  total_income = sum ([member.income for member in household_members])
+  household_members_adjusted = household_members.number() * 12 
+  average_PCHI = total_income / household_members_adjusted
 ---
 # DO NOT MODIFY THIS BLOCK
 table: household_members.table
@@ -145,3 +154,39 @@ code: |
 question: |
   Unfortunately, you do not qualify for legal aid with the Legal Aid Bureau. 
 event: ineligibility_screen
+---
+# To run NRIC validation module where required. 
+mandatory: True
+code: |
+  applicant_nric 
+---
+# Basic Information Collection + NRIC Validation 
+question: |
+  Please fill in the information below. 
+fields: 
+  - First Name: applicant.name.first 
+  - Last Name: applicant.name.last 
+  - "NRIC": applicant_nric 
+    validate: check_nric
+  - "Total Income in the past 12 months": applicant.income 
+    datatype: currency 
+    min: 0 
+    default: 0 
+  - Address: address_address
+    hint: "Include your block number and street name." 
+  - Unit: address_unit 
+    required: false 
+  - Country: address_country
+    code: |
+      countries_list()
+    default: Singapore
+  - Postal Code: address_postal_code
+--- 
+# Result of Means Test 
+mandatory: true
+question: |
+  % if average_PCHI < 950 or average_PCHI == 950: 
+  You have passed the preliminary means test.
+  % else:
+  ${ ineligibility_screen } 
+  % endif
