@@ -20,7 +20,7 @@ metadata:
   authors:
     - name: Claire Tan 
       organization: COR-LAW-2215 Digital Intelligence for Lawyers
-  revision_date: 2020-09-28
+  revision_date: 2020-10-04
 ---
 # DO NOT MODIFY THIS BLOCK. SCORE: 5
 # Implement a check_nric function in a module file called validation.py.
@@ -40,6 +40,16 @@ modules:
 objects:
   applicant: Individual
   household_members: DAList.using(object_type=Individual, there_is_another=False)
+---
+# Opening Screen 
+mandatory: true 
+question: |
+  Welcome to the Legal Aid Bureau ("LAB") online Means Test. This online form is intended to allow applicants for legal aid to self-conduct a preliminary online means test to inform the users of their preliminary eligibility. The information collected may then be processed by the LAB to determine any relevant follow-up action with the applicant. 
+subquestion: |
+  As the data collected during the course of this means test is considered personal data under the Singapore Personal Data Protection Act 2012, LAB will duly comply with all the obligations under that Act. In light of this, the LAB seeks consent in relation to the collection and use of personal data relevant to the processing of the application for legal aid with the LAB. Please provide your acknowledgement to the collection and use of your personal data in this manner. 
+continue button field: data_collection_acknowledgement
+continue button label: I acknowledge
+progress: 0
 ---
 # MODIFY THIS BLOCK (BUT DO NOT MOVE IT). SCORE: 5
 # Use this block to control the interview logic.
@@ -81,6 +91,7 @@ columns:
   - Income: row_item.income
 edit:
   - name.first
+progress: 80
 ---
 # DO NOT MODIFY THIS BLOCK
 question: | 
@@ -99,6 +110,7 @@ subquestion: |
   ${household_members.add_action() }
   
 field: review_household_members
+progress: 80 
 ---
 # DO NOT MODIFY THIS BLOCK
 question: |
@@ -126,22 +138,38 @@ fields:
   - "Do you own multiple properties?": own_one_property
     datatype: noyesradio
     show if: own_property
-  - "As you only own one property, are you currently residing in that property?": residing_in_property
+  - "Is the property your current place of residence?": residing_in_property
     datatype: yesnoradio 
+    note: |
+      Your current "place of residence" is the address found on your identity card. 
     show if: own_one_property 
   - "What is the annual value of your residential property?": annual_value_property
     datatype: currency 
+    note: |
+      To determine the annual value of your property, you may utilise the IRAS platform at https://mytax.iras.gov.sg/ESVWeb/default.aspx and obtain the information using your SingPass. 
     show if: residing_in_property
+progress: 20 
 ---
 # Savings Information Collection
 question: |
-  Savings Matters
+  Savings and Investments Information
+subquestion: |  
+  To calculate your total savings, you should add up the value of:
+
+  1. Your Bank Account Savings (both personal and joint);
+  2. Overall value of shares in your Central Depository account (if relevant); and
+  3. Any other non-CPF financial/investment products with a cash value including fixed deposit accounts at financial institutions, shares, bonds and exchange traded funds.
+  
+  Please note that investments do **not** include those made using money withdrawn from your Central Provident Fund account. 
+  
 fields: 
   - 'Enter your birthdate:': applicant.birthdate 
     datatype: date 
   - 'How much total savings and investments do you have?': applicant_savings_investment
     datatype: currency 
-    default: 0
+    min: 0 
+    default: 0 
+progress: 40
 ---
 # Savings Information Code to Determine Savings Limit 
 code: |
@@ -153,6 +181,8 @@ code: |
 # Event: Ineligbility Screen 
 question: |
   Unfortunately, you do not qualify for legal aid with the Legal Aid Bureau. 
+subquestion: |
+  ### If you believe that you still qualify for legal aid due to certain special reasons, you may contact the MinLaw Services Centre for further assistance and enquiries. Contact details are available at the [MinLaw Website](https://www.mlaw.gov.sg/about-us/contact-us/). 
 event: ineligibility_screen
 ---
 # To run NRIC validation module where required. 
@@ -164,7 +194,16 @@ code: |
 question: |
   Please fill in the information below. 
 fields: 
+  - Salutation: applicant_salutation
+    choices: 
+      - Mr
+      - Ms
+      - Mrs
+      - Mdm
+      - Dr 
   - First Name: applicant.name.first 
+    help: |
+      E.g. If your full name is Anna Tan Lee Ann, you should input "Anna, Lee Ann". If your full name is Lim Lee Ann, you should input "Lee Ann". 
   - Last Name: applicant.name.last 
   - "NRIC": applicant_nric 
     validate: check_nric
@@ -173,20 +212,33 @@ fields:
     min: 0 
     default: 0 
   - Address: address_address
-    hint: "Include your block number and street name." 
+    hint: "E.g. 185 Bishan Street 21" 
   - Unit: address_unit 
+    hint: "E.g. #08-128"
     required: false 
   - Country: address_country
     code: |
       countries_list()
     default: Singapore
   - Postal Code: address_postal_code
+progress: 60 
 --- 
 # Result of Means Test 
 mandatory: true
 question: |
   % if average_PCHI < 950 or average_PCHI == 950: 
+  Dear ${ applicant_salutation } ${applicant.name.last}, 
+  
   You have passed the preliminary means test.
+  
+  Your data has been collected. The LAB will get back to you with the follow-up action required for your application within seven (7) working days. 
   % else:
   ${ ineligibility_screen } 
   % endif
+progress: 100
+---
+# Progress Bar Feature 
+features:
+  progress bar: True
+  show progress bar percentage: True
+--- 
