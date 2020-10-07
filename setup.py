@@ -43,7 +43,7 @@ def find_package_data(where='.', package='', exclude=standard_exclude, exclude_d
     return out
 
 setup(name='docassemble.assignment2020t1',
-      version='0.0.3',
+      version='0.0.4',
       description=("A docassemble interview assignment for SMU's COR-LAW-2215 Digital Intelligence for Lawyers."),
       long_description="This is the submission for Individual Assignment #1 in SMU's COR-LAW-2215 Digital Intelligence for Lawyers course.",
       long_description_content_type='text/markdown',

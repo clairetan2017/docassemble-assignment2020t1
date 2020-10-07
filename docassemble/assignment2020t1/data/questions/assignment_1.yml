@@ -20,7 +20,7 @@ metadata:
   authors:
     - name: Claire Tan 
       organization: COR-LAW-2215 Digital Intelligence for Lawyers
-  revision_date: 2020-10-04
+  revision_date: 2020-10-07
 ---
 # DO NOT MODIFY THIS BLOCK. SCORE: 5
 # Implement a check_nric function in a module file called validation.py.
@@ -146,7 +146,7 @@ fields:
   - "What is the annual value of your residential property?": annual_value_property
     datatype: currency 
     note: |
-      To determine the annual value of your property, you may utilise the IRAS platform at https://mytax.iras.gov.sg/ESVWeb/default.aspx and obtain the information using your SingPass. 
+      To determine the annual value of your property, you may utilise the IRAS platform at https://mytax.iras.gov.sg/ESVWeb/default.aspx and obtain the information using your SingPass details. 
     show if: residing_in_property
 progress: 20 
 ---
@@ -231,7 +231,7 @@ question: |
   
   You have passed the preliminary means test.
   
-  Your data has been collected. The LAB will get back to you with the follow-up action required for your application within seven (7) working days. 
+  Your data has been collected. The LAB will get back to you with the follow-up action required for your application within **seven (7)** working days. 
   % else:
   ${ ineligibility_screen } 
   % endif
